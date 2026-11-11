@@ -1,0 +1,789 @@
+<!DOCTYPE html>
+<html lang="vi" data-theme="light">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IC3 GS6 Level 3 - Sổ Tay Thám Tử Kỹ Thuật Số | Tuần 11</title>
+  <meta name="description" content="Website học tập và ôn luyện IC3 GS6 Level 3 Tuần 11: Bài 13 Các nguyên tắc đánh giá thông tin & Bài 14 AI hỗ trợ tìm kiếm thông tin an toàn.">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+  <!-- Site Header -->
+  <header class="site-header">
+    <div class="container header-inner">
+      <a href="#hero" class="brand-badge">
+        <div class="brand-icon">🕵️‍♂️</div>
+        <div class="brand-text">
+          <h1>SỔ TAY THÁM TỬ KỸ THUẬT SỐ</h1>
+          <span>IC3 GS6 Level 3 • Lớp 8 • Chủ đề 3 (Tuần 11)</span>
+        </div>
+      </a>
+
+      <nav class="main-nav" aria-label="Điều hướng chính">
+        <button type="button" class="nav-link" data-switch-tab="tab-overview">🗺️ Lộ Trình</button>
+        <button type="button" class="nav-link" data-switch-tab="tab-bai13">📖 Bài 13: Đánh Giá</button>
+        <button type="button" class="nav-link" data-switch-tab="tab-bai14">🤖 Bài 14: AI An Toàn</button>
+        <button type="button" class="nav-link" data-switch-tab="tab-cases">🔍 Thực Hành Án Lệ</button>
+        <button type="button" class="nav-link" data-switch-tab="tab-quiz">🎯 Đấu Trường Ôn Tập</button>
+      </nav>
+
+      <div class="header-actions">
+        <button type="button" class="action-btn" id="sound-toggle" aria-label="Bật/Tắt âm thanh" title="Âm thanh hiệu ứng">
+          <span>🔔</span>
+        </button>
+        <button type="button" class="action-btn" id="theme-toggle" aria-label="Chuyển chế độ sáng/tối" title="Sáng/Tối">
+          <span>🌙</span>
+        </button>
+        <button type="button" class="action-btn" data-action="print-worksheet" aria-label="In phiếu học tập" title="In phiếu học tập A4">
+          <span>🖨️</span>
+        </button>
+      </div>
+    </div>
+    <!-- Reading Progress Bar -->
+    <div class="header-progress-wrap" aria-hidden="true">
+      <div class="header-progress-bar" id="header-progress"></div>
+    </div>
+  </header>
+
+  <!-- Hero Section -->
+  <section class="hero-section" id="hero">
+    <div class="container hero-grid">
+      <div class="hero-content">
+        <span class="hero-tag">🎓 Tin học 8 & Chuẩn Quốc Tế IC3 GS6</span>
+        <h2 class="hero-title">
+          Làm Chủ Thông Tin Số & <span>Ứng Dụng AI An Toàn</span>
+        </h2>
+        <p class="hero-desc">
+          Internet tràn ngập hàng triệu thông tin mỗi ngày và AI có thể tự tin bịa đặt nguồn. 
+          Hãy trang bị cho mình tư duy thám tử, nắm vững <strong>5 nguyên tắc cốt lõi</strong> và 
+          bộ công cụ <strong>AAOCC</strong> để trở thành người tiêu dùng thông tin thông minh!
+        </p>
+
+        <div class="hero-cta">
+          <button type="button" class="btn btn-primary" data-switch-tab="tab-bai13">
+            🚀 Khám Phá Bài 13 & 14
+          </button>
+          <button type="button" class="btn btn-accent" data-switch-tab="tab-quiz">
+            🎯 Vào Phòng Luyện Thi (15 Câu)
+          </button>
+          <button type="button" class="btn btn-secondary" data-switch-tab="tab-cases">
+            🔍 Khám Nghiệm Hiện Trường
+          </button>
+        </div>
+
+        <div class="hero-stats">
+          <div class="stat-item">
+            <span class="stat-num">5</span>
+            <span class="stat-label">Nguyên tắc cốt lõi</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-num">AAOCC</span>
+            <span class="stat-label">Bộ công cụ giám định</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-num">15+</span>
+            <span class="stat-label">Câu hỏi ôn tập IC3</span>
+          </div>
+          <div class="stat-item">
+            <span class="stat-num">100%</span>
+            <span class="stat-label">Bám sát Slide bài học</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="hero-media">
+        <div class="hero-card-preview">
+          <img src="assets/optimized/bai14_slide1.webp" alt="Poster Sổ Tay Thám Tử Kỹ Thuật Số" width="688" height="384" loading="eager">
+          <div class="hero-card-badge">Chủ đề 3: Quản lý thông tin</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Main Workspace & Tabbed Interface -->
+  <main class="container">
+    <div class="tabs-container">
+      
+      <!-- Accessible Tab Navigation Bar (Modern Web Guidance) -->
+      <div class="tab-nav-bar" role="tablist" aria-label="Các học phần và ôn tập">
+        <button type="button" class="tab-btn" id="tab-overview" role="tab" aria-selected="true" aria-controls="panel-overview" tabindex="0">
+          🗺️ Lộ Trình Học Tập
+        </button>
+        <button type="button" class="tab-btn" id="tab-bai13" role="tab" aria-selected="false" aria-controls="panel-bai13" tabindex="-1">
+          📚 Bài 13: Đánh Giá Thông Tin
+        </button>
+        <button type="button" class="tab-btn" id="tab-bai14" role="tab" aria-selected="false" aria-controls="panel-bai14" tabindex="-1">
+          🤖 Bài 14: AI Tìm Kiếm An Toàn
+        </button>
+        <button type="button" class="tab-btn" id="tab-cases" role="tab" aria-selected="false" aria-controls="panel-cases" tabindex="-1">
+          🕵️‍♂️ Vụ Án Thám Tử (Án Lệ)
+        </button>
+        <button type="button" class="tab-btn" id="tab-quiz" role="tab" aria-selected="false" aria-controls="panel-quiz" tabindex="-1">
+          🏆 Đấu Trường Luyện Thi IC3
+        </button>
+      </div>
+
+      <!-- TAB PANEL 1: TỔNG QUAN LỘ TRÌNH -->
+      <div id="panel-overview" class="tab-panel-wrapper" role="tabpanel" aria-labelledby="tab-overview" tabindex="0">
+        <div class="section-head">
+          <span class="section-subtitle">Kế hoạch học tập tuần 11</span>
+          <h3 class="section-title">Hành Trình Trở Thành Thám Tử Kỹ Thuật Số</h3>
+          <p class="section-desc">Hoàn thành lần lượt 4 chặng để nắm vững kỹ năng đánh giá thông tin và sử dụng Trí tuệ nhân tạo một cách an toàn, có trách nhiệm.</p>
+        </div>
+
+        <div class="journey-grid">
+          <div class="journey-card">
+            <div class="journey-step">1</div>
+            <h3>Chặng 1: Nền Tảng Đánh Giá</h3>
+            <p>Khám phá lý do cần kiểm chứng thông tin, 5 nguyên tắc vàng (Chính xác, Cập nhật, Đầy đủ 4W+1H, Phù hợp, Nguồn uy tín) và bảng Fast-Check 30 giây.</p>
+            <button type="button" class="card-link" data-switch-tab="tab-bai13">Bắt đầu Bài 13 ➔</button>
+          </div>
+
+          <div class="journey-card">
+            <div class="journey-step">2</div>
+            <h3>Chặng 2: Luật & Sở Hữu Trí Tuệ</h3>
+            <p>Phân biệt Bằng sáng chế (Patent), Bí mật thương mại (Trade Secret), Thương hiệu (Trademark), Bản quyền (Copyright) và quy tắc Sử dụng hợp lý (Fair Use).</p>
+            <button type="button" class="card-link" data-switch-tab="tab-bai13">Xem Chuyên đề Sở Hữu Trí Tuệ ➔</button>
+          </div>
+
+          <div class="journey-card">
+            <div class="journey-step">3</div>
+            <h3>Chặng 3: Trí Tuệ Nhân Tạo (AI)</h3>
+            <p>Học công thức viết Prompt chuẩn 4 thành phần, hiểu rõ hiện tượng AI bịa đặt nguồn (Hallucination) và sử dụng bộ 5 trạm kiểm định AAOCC.</p>
+            <button type="button" class="card-link" data-switch-tab="tab-bai14">Khám phá Bài 14 ➔</button>
+          </div>
+
+          <div class="journey-card">
+            <div class="journey-step">4</div>
+            <h3>Chặng 4: Thực Chiến & Thi Thử</h3>
+            <p>Thực hành khám nghiệm 3 hồ sơ vụ án tin tức trên mạng, sau đó chinh phục 15 câu hỏi trắc nghiệm IC3 GS6 để nhận Chứng chỉ Thám tử Số.</p>
+            <button type="button" class="card-link" data-switch-tab="tab-quiz">Vào Thi Thử Ngay ➔</button>
+          </div>
+        </div>
+
+        <!-- Visual infographic summary banner -->
+        <div style="margin-top: 2.5rem; text-align: center;">
+          <img src="assets/optimized/bai14_slide11.webp" alt="Tổng quan AI là trợ lý, tư duy phản biện là siêu năng lực" style="border-radius: var(--radius-lg); margin: 0 auto; box-shadow: var(--shadow-md);" width="960" height="536">
+        </div>
+      </div>
+
+      <!-- TAB PANEL 2: BÀI 13 CÁC NGUYÊN TẮC ĐÁNH GIÁ THÔNG TIN -->
+      <div id="panel-bai13" class="tab-panel-wrapper" role="tabpanel" aria-labelledby="tab-bai13" hidden tabindex="-1">
+        
+        <div class="lesson-header">
+          <div>
+            <span class="lesson-badge">Bài Học Lý Thuyết 13</span>
+            <h2 class="lesson-title">Bài 13: Các Nguyên Tắc Đánh Giá Thông Tin</h2>
+          </div>
+          <button type="button" class="btn btn-secondary" data-action="print-worksheet">
+            🖨️ In Bài Học
+          </button>
+        </div>
+
+        <!-- Phần 1: Vì sao cần đánh giá -->
+        <div class="callout-box callout-warning">
+          <div class="callout-icon">⚠️</div>
+          <div class="callout-content">
+            <h4>Vì Sao Học Sinh Cần Đánh Giá Thông Tin?</h4>
+            <p>
+              Internet chứa hàng triệu tin tức mỗi ngày. Không kiểm chứng dễ dẫn đến hậu quả nghiêm trọng!
+              <br/>
+              • <strong>Bẫy tin giả & lừa đảo:</strong> Tin giật gân, sai sự thật tràn ngập mạng xã hội gây hoang mang, làm hiểu sai kiến thức khoa học.
+              <br/>
+              • <strong>Học tập an toàn & chính xác:</strong> Chọn lọc thông tin chuẩn giúp hoàn thành bài tập tốt và mở rộng hiểu biết đáng tin cậy.
+            </p>
+          </div>
+        </div>
+
+        <!-- 5 Nguyên Tắc Cốt Lõi -->
+        <h3 style="font-size:1.35rem; font-weight:800; margin: 1.5rem 0 0.5rem;">5 Nguyên Tắc Đánh Giá Cốt Lõi</h3>
+        <p style="color:var(--text-muted); font-size:0.92rem; margin-bottom:1rem;">Hãy luôn kiểm tra 5 tiêu chí này trước khi tin tưởng hoặc trích dẫn bất kỳ nội dung nào:</p>
+
+        <div class="principles-grid">
+          
+          <!-- Nguyên tắc 1 -->
+          <div class="principle-card">
+            <div class="principle-header">
+              <span class="principle-num">1</span>
+              <h4>Tính Chính Xác</h4>
+            </div>
+            <p class="principle-desc">Thông tin phải phản ánh đúng sự thật khách quan, có bằng chứng, số liệu rõ ràng; không thêu dệt hay cắt ghép.</p>
+            <div class="comparison-box">
+              <div class="compare-wrong">❌ "Uống nước chanh chữa khỏi 100% ung thư" <em>(Tin đồn sai sự thật)</em></div>
+              <div class="compare-right">✅ Khuyến cáo phòng ngừa bệnh từ <strong>Bộ Y tế (moh.gov.vn)</strong></div>
+            </div>
+          </div>
+
+          <!-- Nguyên tắc 2 -->
+          <div class="principle-card">
+            <div class="principle-header">
+              <span class="principle-num">2</span>
+              <h4>Tính Cập Nhật</h4>
+            </div>
+            <p class="principle-desc">Thông tin phải mới nhất, còn giá trị sử dụng ở hiện tại. Kiểm tra ngày xuất bản hoặc lần chỉnh sửa gần nhất.</p>
+            <div class="comparison-box">
+              <div class="compare-wrong">❌ Dùng lịch dự báo thời tiết của tuần trước để chuẩn bị đi học hôm nay.</div>
+              <div class="compare-right">✅ Xem <strong>Dự báo thời tiết hôm nay</strong> để biết có mưa hay không.</div>
+            </div>
+          </div>
+
+          <!-- Nguyên tắc 3 -->
+          <div class="principle-card">
+            <div class="principle-header">
+              <span class="principle-num">3</span>
+              <h4>Tính Đầy Đủ (4W + 1H)</h4>
+            </div>
+            <p class="principle-desc">Chứa đủ các chi tiết cốt lõi: Who (Ai), What (Gì), Where (Ở đâu), When (Khi nào), How (Như thế nào). Tránh tin mập mờ.</p>
+            <div class="comparison-box">
+              <div class="compare-wrong">❌ "Chiều nay lớp nghỉ học" <em>(Thiếu môn, thiếu giờ, thiếu lớp)</em></div>
+              <div class="compare-right">✅ "Chiều nay lớp 8A nghỉ 2 tiết Lý lúc 15h00"</div>
+            </div>
+          </div>
+
+          <!-- Nguyên tắc 4 -->
+          <div class="principle-card">
+            <div class="principle-header">
+              <span class="principle-num">4</span>
+              <h4>Tính Phù Hợp</h4>
+            </div>
+            <p class="principle-desc">Nội dung đúng nhu cầu bài học, vừa sức hiểu với lứa tuổi học sinh, không quá sơ sài cũng không quá phức tạp.</p>
+            <div class="comparison-box">
+              <div class="compare-wrong">❌ Học sinh THCS tìm hiểu về Hệ Mặt Trời lại đọc luận án Tiến sĩ vật lý lượng tử.</div>
+              <div class="compare-right">✅ Đọc sách <strong>Khám phá khoa học Hệ Mặt Trời</strong> dành cho học sinh.</div>
+            </div>
+          </div>
+
+          <!-- Nguyên tắc 5 -->
+          <div class="principle-card">
+            <div class="principle-header">
+              <span class="principle-num">5</span>
+              <h4>Nguồn Uy Tín</h4>
+            </div>
+            <p class="principle-desc">Xuất phát từ tác giả có chuyên môn, giáo viên, cơ quan nghiên cứu hoặc trang web chính thống.</p>
+            <div class="comparison-box">
+              <div class="compare-wrong">❌ Bài viết trên blog cá nhân nặc danh, không ghi rõ nguồn gốc.</div>
+              <div class="compare-right">✅ Website có tên miền <strong>.gov.vn</strong> (Chính phủ), <strong>.edu.vn</strong> (Giáo dục).</div>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- 4W + 1H Interactive Tool -->
+        <div class="rules-explorer">
+          <h4 style="font-size:1.15rem; font-weight:800; margin-bottom:0.4rem;">
+            🧪 Thí Nghiệm Tương Tác: Thước Đo 4W + 1H
+          </h4>
+          <p style="font-size:0.88rem; color:var(--text-muted);">
+            Bấm chọn từng mảnh ghép bên dưới để xem một tin nhắn mập mờ biến đổi thành một thông báo chuẩn xác, tin cậy:
+          </p>
+
+          <div class="w-grid">
+            <button type="button" class="w-badge w-interactive-chip" data-w="who">
+              <span class="w-title">WHO?</span>
+              <span class="w-desc">Ai / Đối tượng nào</span>
+            </button>
+            <button type="button" class="w-badge w-interactive-chip" data-w="what">
+              <span class="w-title">WHAT?</span>
+              <span class="w-desc">Sự việc gì xảy ra</span>
+            </button>
+            <button type="button" class="w-badge w-interactive-chip" data-w="when">
+              <span class="w-title">WHEN?</span>
+              <span class="w-desc">Khi nào / Lúc mấy giờ</span>
+            </button>
+            <button type="button" class="w-badge w-interactive-chip" data-w="where">
+              <span class="w-title">WHERE?</span>
+              <span class="w-desc">Ở đâu / Địa điểm</span>
+            </button>
+            <button type="button" class="w-badge w-interactive-chip" data-w="how">
+              <span class="w-title">HOW?</span>
+              <span class="w-desc">Như thế nào / Vì sao</span>
+            </button>
+          </div>
+
+          <div style="background-color:var(--bg-surface); border:1px solid var(--border-color); border-radius:var(--radius-md); padding:1rem; margin:1rem 0;">
+            <div style="font-size:0.8rem; font-weight:700; color:var(--text-subtle); margin-bottom:0.25rem;">NỘI DUNG THÔNG ĐIỆP HIỆN TẠI:</div>
+            <div id="w-demo-text" style="font-size:1.05rem; font-weight:600; line-height:1.6;">Chiều nay</div>
+          </div>
+
+          <div id="w-status-note" class="callout-box callout-warning" style="margin:0;">
+            ⚠️ <strong>CHƯA ĐẦY ĐỦ:</strong> Bấm vào các thẻ Who, What, Where, When, How để hoàn thiện thông điệp!
+          </div>
+        </div>
+
+        <!-- Checklist Fast-Check 30s -->
+        <h3 style="font-size:1.35rem; font-weight:800; margin: 2rem 0 0.5rem;">Checklist Kiểm Tra Nhanh Fast-Check (30 Giây)</h3>
+        <p style="color:var(--text-muted); font-size:0.92rem; margin-bottom:1rem;">Khi bắt gặp một bài viết bất kỳ trên mạng xã hội hoặc internet, hãy trả lời nhanh 4 câu hỏi này:</p>
+
+        <div class="checklist-table-wrap">
+          <table class="custom-table">
+            <thead>
+              <tr>
+                <th style="width: 15%;">Bước</th>
+                <th style="width: 40%;">Câu hỏi tự đặt ra</th>
+                <th style="width: 45%;">Mẹo nhận biết nhanh</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><span class="step-chip">Bước 1</span></td>
+                <td><strong>AI VIẾT?</strong><br/>Ai là tác giả? Trang web nào đăng?</td>
+                <td>Ưu tiên trang chính thống có tên miền <code>.edu.vn</code>, <code>.gov.vn</code> hoặc các cơ quan báo chí lớn được cấp phép.</td>
+              </tr>
+              <tr>
+                <td><span class="step-chip">Bước 2</span></td>
+                <td><strong>CÓ ĐÚNG?</strong><br/>Có bằng chứng, số liệu cụ thể không?</td>
+                <td>Thử tìm kiếm chéo xem các trang thông tin lớn khác có đưa tin tương tự không.</td>
+              </tr>
+              <tr>
+                <td><span class="step-chip">Bước 3</span></td>
+                <td><strong>CÓ MỚI?</strong><br/>Bài viết được đăng khi nào?</td>
+                <td>Xem mốc thời gian xuất bản ở đầu hoặc cuối bài viết. Tránh đọc tin từ nhiều năm trước bị đào lại.</td>
+              </tr>
+              <tr>
+                <td><span class="step-chip">Bước 4</span></td>
+                <td><strong>MỤC ĐÍCH?</strong><br/>Chia sẻ kiến thức hay giật gân câu view?</td>
+                <td>Thận trọng cao độ với các tít giật gân như <em>"Sốc", "Chia sẻ gấp", "Bí mật bị giấu kín"...</em></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Chuyên đề Sở Hữu Trí Tuệ (IC3 Intellectual Property) -->
+        <div style="margin-top:2.5rem; background-color:var(--bg-subtle); border:1px solid var(--border-color); border-radius:var(--radius-lg); padding:1.5rem;">
+          <h3 style="font-size:1.25rem; font-weight:800; color:var(--text-main); margin-bottom:0.5rem;">
+            ⚖️ Chuyên Đề Mở Rộng IC3: Bảo Hộ Sở Hữu Trí Tuệ & Sử Dụng Hợp Lý
+          </h3>
+          <p style="font-size:0.9rem; color:var(--text-muted); margin-bottom:1.25rem;">
+            Theo chuẩn IC3 GS6 Level 3, học sinh cần phân biệt rõ các loại quyền sở hữu trí tuệ và hành vi vi phạm:
+          </p>
+
+          <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(260px, 1fr)); gap:1rem;">
+            <div style="background-color:var(--bg-surface); padding:1rem; border-radius:var(--radius-md); border:1px solid var(--border-color);">
+              <h5 style="color:var(--primary); font-weight:700; font-size:0.95rem;">💡 Bằng sáng chế (Patent)</h5>
+              <p style="font-size:0.85rem; color:var(--text-muted);">Bảo hộ phát minh, sáng chế kỹ thuật mới. <strong>Vi phạm:</strong> Sử dụng hoặc bán phát minh mà không được sự đồng ý của người nắm giữ văn bằng bảo hộ.</p>
+            </div>
+
+            <div style="background-color:var(--bg-surface); padding:1rem; border-radius:var(--radius-md); border:1px solid var(--border-color);">
+              <h5 style="color:#b45309; font-weight:700; font-size:0.95rem;">🤫 Bí mật thương mại (Trade Secret)</h5>
+              <p style="font-size:0.85rem; color:var(--text-muted);">Bảo vệ bí quyết kinh doanh mật. <strong>Chiếm đoạt (Misappropriation):</strong> Trộm cắp thông tin vì mục đích kinh tế hoặc làm lợi cho thế lực bên ngoài.</p>
+            </div>
+
+            <div style="background-color:var(--bg-surface); padding:1rem; border-radius:var(--radius-md); border:1px solid var(--border-color);">
+              <h5 style="color:#0f766e; font-weight:700; font-size:0.95rem;">🏷️ Thương hiệu (Trademark)</h5>
+              <p style="font-size:0.85rem; color:var(--text-muted);">Bảo vệ Logo, khẩu hiệu, biểu tượng sản phẩm. <strong>Vi phạm:</strong> Sử dụng Logo hoặc tên tương tự gây nhầm lẫn với doanh nghiệp khác.</p>
+            </div>
+
+            <div style="background-color:var(--bg-surface); padding:1rem; border-radius:var(--radius-md); border:1px solid var(--border-color);">
+              <h5 style="color:#7c3aed; font-weight:700; font-size:0.95rem;">📖 Bản quyền (Copyright) & Fair Use</h5>
+              <p style="font-size:0.85rem; color:var(--text-muted);">Bảo hộ tác phẩm nghệ thuật, phim ảnh, âm nhạc. <strong>Sử dụng hợp lý (Fair Use):</strong> Được phép trích ảnh tĩnh, đoạn ngắn để đánh giá, bình luận học tập trực tuyến.</p>
+            </div>
+          </div>
+        </div>
+
+        <div style="text-align:center; margin-top:2rem;">
+          <button type="button" class="btn btn-primary" data-switch-tab="tab-bai14">
+            Học Tiếp Bài 14: AI Hỗ Trợ Tìm Kiếm An Toàn ➔
+          </button>
+        </div>
+
+      </div>
+
+      <!-- TAB PANEL 3: BÀI 14 AI HỖ TRỢ TÌM KIẾM THÔNG TIN AN TOÀN -->
+      <div id="panel-bai14" class="tab-panel-wrapper" role="tabpanel" aria-labelledby="tab-bai14" hidden tabindex="-1">
+        
+        <div class="lesson-header">
+          <div>
+            <span class="lesson-badge">Bài Học Lý Thuyết 14</span>
+            <h2 class="lesson-title">Bài 14: AI Hỗ Trợ Tìm Kiếm Thông Tin An Toàn</h2>
+          </div>
+          <button type="button" class="btn btn-secondary" data-action="print-worksheet">
+            🖨️ In Bài Học
+          </button>
+        </div>
+
+        <!-- Poster Banner -->
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.5rem; align-items:center; margin-bottom:2rem;">
+          <div>
+            <h3 style="font-size:1.35rem; font-weight:800; margin-bottom:0.5rem;">Sổ Tay Thám Tử Kỹ Thuật Số</h3>
+            <p style="font-size:0.95rem; color:var(--text-muted); margin-bottom:1rem;">
+              Trí tuệ nhân tạo (AI) như ChatGPT, Gemini, Copilot là người trợ lý đắc lực cho việc tra cứu thông tin. Tuy nhiên, AI <strong>không thay người học suy nghĩ</strong>. AI chỉ gợi ý, <strong>bạn là người ra quyết định cuối cùng</strong>!
+            </p>
+            <div class="callout-box callout-danger" style="margin:0;">
+              <div class="callout-icon">🚨</div>
+              <div class="callout-content">
+                <h4>Nguyên Tắc Bất Di Bất Dịch:</h4>
+                <p>AI hỗ trợ tìm kiếm, nhưng tư duy phản biện mới là siêu năng lực của bạn!</p>
+              </div>
+            </div>
+          </div>
+          <div>
+            <img src="assets/optimized/bai14_slide3.webp" alt="Minh họa AI hỗ trợ tìm kiếm" style="border-radius:var(--radius-lg); box-shadow:var(--shadow-md);" width="688" height="384">
+          </div>
+        </div>
+
+        <!-- 3 Vai trò của AI trong tìm kiếm -->
+        <div style="display:grid; grid-template-columns:repeat(3, 1fr); gap:1rem; margin-bottom:2rem;">
+          <div style="background-color:var(--bg-surface); border:1px solid var(--border-color); border-radius:var(--radius-md); padding:1.25rem; text-align:center;">
+            <div style="font-size:2rem; margin-bottom:0.25rem;">🧭</div>
+            <h4 style="font-size:1rem; font-weight:700;">1. Gợi Ý Tìm Kiếm</h4>
+            <p style="font-size:0.85rem; color:var(--text-muted);">Định hướng các chủ đề rộng để bắt đầu mở rộng manh mối điều tra.</p>
+          </div>
+          <div style="background-color:var(--bg-surface); border:1px solid var(--border-color); border-radius:var(--radius-md); padding:1.25rem; text-align:center;">
+            <div style="font-size:2rem; margin-bottom:0.25rem;">🔑</div>
+            <h4 style="font-size:1rem; font-weight:700;">2. Đề Xuất Từ Khóa</h4>
+            <p style="font-size:0.85rem; color:var(--text-muted);">Khám phá các góc nhìn mới, thuật ngữ chuyên ngành chuẩn xác.</p>
+          </div>
+          <div style="background-color:var(--bg-surface); border:1px solid var(--border-color); border-radius:var(--radius-md); padding:1.25rem; text-align:center;">
+            <div style="font-size:2rem; margin-bottom:0.25rem;">🗺️</div>
+            <h4 style="font-size:1rem; font-weight:700;">3. Xây Dựng Chiến Lược</h4>
+            <p style="font-size:0.85rem; color:var(--text-muted);">Lên kế hoạch và các bước logic để thu thập thông tin bài tập.</p>
+          </div>
+        </div>
+
+        <!-- Interactive Tool: Công thức lấy lời khai (Prompt Chuẩn) -->
+        <div class="prompt-builder-wrap">
+          <div class="builder-header">
+            <h3>🛠️ Công Thức Lấy Lời Khai: Viết Prompt Hiệu Quả</h3>
+            <p style="font-size:0.88rem; color:var(--text-muted);">
+              Prompt càng rõ ràng, manh mối thu về từ AI càng hữu ích và chính xác. Hãy hoàn thiện 4 thành phần:
+            </p>
+          </div>
+
+          <div class="builder-steps-grid">
+            <div class="builder-step-card">
+              <label for="prompt-topic">1. CHỦ ĐỀ (Topic):</label>
+              <select id="prompt-topic">
+                <option value="chế độ dinh dưỡng khoa học">Dinh dưỡng khoa học</option>
+                <option value="tác động của biến đổi khí hậu">Biến đổi khí hậu</option>
+                <option value="bảo mật mật khẩu và an toàn mạng">An toàn mật khẩu</option>
+                <option value="lịch sử phong trào Cần Vương">Lịch sử Cần Vương</option>
+              </select>
+            </div>
+
+            <div class="builder-step-card">
+              <label for="prompt-context">2. NGỮ CẢNH (Context):</label>
+              <select id="prompt-context">
+                <option value="chuẩn bị bài thuyết trình 5 phút trước lớp">Thuyết trình 5 phút trước lớp</option>
+                <option value="làm bài tập nhóm môn Tin học 8">Làm bài tập nhóm Tin học 8</option>
+                <option value="tham gia cuộc thi Khoa học Kỹ thuật thanh thiếu niên">Thi Khoa học Kỹ thuật</option>
+              </select>
+            </div>
+
+            <div class="builder-step-card">
+              <label for="prompt-audience">3. ĐỐI TƯỢNG (Audience):</label>
+              <select id="prompt-audience">
+                <option value="học sinh trung học cơ sở (lớp 8)">Học sinh lớp 8</option>
+                <option value="học sinh tiểu học dễ hiểu">Học sinh tiểu học</option>
+                <option value="phụ huynh học sinh">Phụ huynh học sinh</option>
+              </select>
+            </div>
+
+            <div class="builder-step-card">
+              <label for="prompt-format">4. ĐỊNH DẠNG (Format):</label>
+              <select id="prompt-format">
+                <option value="danh sách 5 gạch đầu dòng súc tích">5 gạch đầu dòng súc tích</option>
+                <option value="bảng so sánh ưu nhược điểm 2 cột">Bảng so sánh 2 cột</option>
+                <option value="đoạn tóm tắt ngắn 100 từ kèm ví dụ">Đoạn tóm tắt 100 từ</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="prompt-output-box">
+            <h4>CÂU PROMPT TỔNG HỢP THEO CHUẨN THÁM TỬ:</h4>
+            <div class="prompt-synthesized-text" id="synthesized-prompt">Đang tạo prompt...</div>
+            <button type="button" class="btn btn-primary" id="btn-run-sim">
+              ⚡ Chạy Thử Mô Phỏng AI (Xem Sự Khác Biệt)
+            </button>
+          </div>
+
+          <div class="prompt-sim-result" id="prompt-sim-result" style="display:none;">
+            <div class="sim-box sim-bad">
+              <h5>❌ KHI DÙNG PROMPT SƠ SÀI:</h5>
+              <div id="sim-bad-content"></div>
+            </div>
+            <div class="sim-box sim-good">
+              <h5>✅ KHI DÙNG PROMPT CHUẨN 4W:</h5>
+              <div id="sim-good-content"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Lỗ hổng của AI: Hiện tượng bịa đặt nguồn (Hallucination) -->
+        <h3 style="font-size:1.35rem; font-weight:800; margin: 2rem 0 0.5rem;">
+          🕳️ Lỗ Hổng Của AI: Hiện Tượng Bịa Đặt Nguồn (AI Hallucination)
+        </h3>
+        <p style="color:var(--text-muted); font-size:0.92rem; margin-bottom:1rem;">
+          AI hoạt động theo cơ chế xác suất ngôn ngữ, vì vậy nó có hai nhược điểm chết người mà học sinh cần biết:
+        </p>
+
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.25rem; margin-bottom:1.5rem;">
+          <div style="background-color:var(--bg-surface); border:1px solid var(--border-color); border-radius:var(--radius-md); padding:1.25rem;">
+            <h4 style="color:#b91c1c; font-size:1.05rem; font-weight:700; margin-bottom:0.5rem;">Vấn đề 1: Tự tin nhưng sai sự thật</h4>
+            <p style="font-size:0.88rem; color:var(--text-muted);">AI có thể trả lời cực kỳ lưu loát, dùng câu từ vô cùng thuyết phục nhưng nội dung bên trong lại hoàn toàn sai lệch.</p>
+          </div>
+          <div style="background-color:var(--bg-surface); border:1px solid var(--border-color); border-radius:var(--radius-md); padding:1.25rem;">
+            <h4 style="color:#b91c1c; font-size:1.05rem; font-weight:700; margin-bottom:0.5rem;">Vấn đề 2: Bịa đặt các đường link & tác giả</h4>
+            <p style="font-size:0.88rem; color:var(--text-muted);">AI có thể tự 'sáng tác' ra tên sách, tên viện nghiên cứu hoặc đường link web trông rất hợp lý nhưng thực tế link đó bấm vào bị lỗi 404 (không tồn tại).</p>
+          </div>
+        </div>
+
+        <!-- Hồ sơ nhận diện nguồn tin -->
+        <div style="background-color:var(--bg-subtle); border-radius:var(--radius-lg); padding:1.5rem; margin-bottom:2rem; border:1px solid var(--border-color);">
+          <h4 style="font-size:1.15rem; font-weight:800; margin-bottom:0.75rem;">Nhận Diện Hồ Sơ Nguồn Tin Thật vs Nguồn Bịa Đặt</h4>
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:1.25rem;">
+            <div style="background-color:var(--bg-surface); padding:1rem; border-radius:var(--radius-md); border-left:4px solid var(--success);">
+              <h5 style="color:var(--success); font-weight:700; margin-bottom:0.25rem;">✅ Nguồn Thật & Đáng Tin Cậy</h5>
+              <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:0.5rem;">Ví dụ: Tổ chức Y tế Thế giới (<code>who.int</code>), Bộ Y tế (<code>moh.gov.vn</code>), Bộ GD&ĐT (<code>moet.gov.vn</code>).</p>
+              <ul style="font-size:0.82rem; padding-left:1.2rem; color:var(--text-main);">
+                <li>Đuôi tên miền uy tín (.gov, .edu, .int, .org).</li>
+                <li>Có ghi rõ ngày cập nhật bài viết gần nhất.</li>
+                <li>Có đội ngũ tác giả, chuyên gia chịu trách nhiệm pháp lý.</li>
+              </ul>
+            </div>
+
+            <div style="background-color:var(--bg-surface); padding:1rem; border-radius:var(--radius-md); border-left:4px solid var(--danger);">
+              <h5 style="color:var(--danger); font-weight:700; margin-bottom:0.25rem;">❌ Nguồn Bịa Đặt & Thiếu Uy Tín</h5>
+              <p style="font-size:0.85rem; color:var(--text-muted); margin-bottom:0.5rem;">Ví dụ: <code>abc123xyz.edu.vn</code> (không tồn tại), <code>HealthyNews123.com</code>.</p>
+              <ul style="font-size:0.82rem; padding-left:1.2rem; color:var(--text-main);">
+                <li>Bấm vào link báo lỗi "Không tìm thấy trang" (Error 404).</li>
+                <li>Tên miền lạ lẫm, miễn phí (.xyz, .tk, .cc), không tổ chức bảo trợ.</li>
+                <li>Không tìm thấy tên tác giả trong các tài liệu khoa học chính thức.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+
+        <!-- 3 Lĩnh vực nhạy cảm cần cảnh giác cao độ -->
+        <h3 style="font-size:1.35rem; font-weight:800; margin: 2rem 0 0.5rem;">
+          ⛔ 3 "Vụ Án" Tuyệt Đối Cảnh Giác Cao Độ (Vùng Đỏ)
+        </h3>
+        <p style="color:var(--text-muted); font-size:0.92rem; margin-bottom:1rem;">
+          Đối với 3 lĩnh vực rủi ro cao sau đây, <strong>tuyệt đối không chỉ dựa vào AI</strong> mà bắt buộc phải xác thực chéo bằng nguồn chính thống:
+        </p>
+
+        <div class="red-flag-grid">
+          <div class="red-flag-card">
+            <span class="red-flag-num">1</span>
+            <h4>Sức Khỏe & Y Tế</h4>
+            <p>Triệu chứng bệnh, đơn thuốc, phương pháp điều trị. Sai sót có thể nguy hiểm đến tính mạng!</p>
+          </div>
+          <div class="red-flag-card">
+            <span class="red-flag-num">2</span>
+            <h4>Pháp Luật & Quy Định</h4>
+            <p>Điều luật, mức xử phạt, quy chế thi cử, thủ tục hành chính. AI thường nhầm lẫn luật các nước.</p>
+          </div>
+          <div class="red-flag-card">
+            <span class="red-flag-num">3</span>
+            <h4>Tài Chính & Tiền Bạc</h4>
+            <p>Đầu tư, giao dịch ngân hàng, chuyển tiền. Rất dễ dính bẫy lừa đảo công nghệ cao!</p>
+          </div>
+        </div>
+
+        <!-- Bộ công cụ AAOCC -->
+        <h3 style="font-size:1.35rem; font-weight:800; margin: 2.5rem 0 0.5rem;">
+          🔬 Bộ Công Cụ AAOCC: Khám Nghiệm Thông Tin (5 Trạm Kiểm Định)
+        </h3>
+        <p style="color:var(--text-muted); font-size:0.92rem; margin-bottom:1rem;">
+          Hãy đặt 5 câu hỏi này để quét xem câu trả lời của AI hoặc thông tin trên mạng có đủ an toàn để sử dụng hay không:
+        </p>
+
+        <div class="aaocc-stations-grid">
+          <div class="aaocc-station">
+            <div class="station-letter">A</div>
+            <div class="station-name">Chính Xác (Accuracy)</div>
+            <div class="station-question">Thông tin này có đúng sự thật và có số liệu logic không?</div>
+          </div>
+          <div class="aaocc-station">
+            <div class="station-letter">A</div>
+            <div class="station-name">Thẩm Quyền (Authority)</div>
+            <div class="station-question">Nguồn cung cấp có uy tín và chuyên môn thật sự không?</div>
+          </div>
+          <div class="aaocc-station">
+            <div class="station-letter">O</div>
+            <div class="station-name">Khách Quan (Objectivity)</div>
+            <div class="station-question">Thông tin có trung lập, hay đang thiên lệch, định hướng câu view?</div>
+          </div>
+          <div class="aaocc-station">
+            <div class="station-letter">C</div>
+            <div class="station-name">Cập Nhật (Currency)</div>
+            <div class="station-question">Dữ liệu có mới không, hay đã lỗi thời trong quá khứ?</div>
+          </div>
+          <div class="aaocc-station">
+            <div class="station-letter">C</div>
+            <div class="station-name">Bao Quát (Coverage)</div>
+            <div class="station-question">Thông tin đã đầy đủ các khía cạnh chưa, hay chỉ là mảnh vỡ?</div>
+          </div>
+        </div>
+
+        <div class="callout-box callout-info" style="margin-top:1.5rem;">
+          <div class="callout-icon">🚦</div>
+          <div class="callout-content">
+            <h4>Quy Tắc Đèn Đỏ Của Thám Tử:</h4>
+            <p>Nếu bất kỳ trạm nào trong 5 trạm AAOCC báo "Đèn đỏ" (còn nghi ngờ), <strong>BẮT BUỘC</strong> phải đối chiếu lại với nguồn chính thống trước khi sử dụng!</p>
+          </div>
+        </div>
+
+        <!-- Quy trình 3 bước -->
+        <div style="background-color:var(--bg-surface); border:1px solid var(--border-color); border-radius:var(--radius-lg); padding:1.5rem; margin-top:2rem;">
+          <h4 style="font-size:1.15rem; font-weight:800; margin-bottom:1rem; text-align:center;">Quy Trình Tác Nghiệp 3 Bước</h4>
+          <div style="display:flex; justify-content:space-around; gap:1rem; flex-wrap:wrap; text-align:center;">
+            <div style="flex:1; min-width:200px;">
+              <div style="font-size:1.75rem; color:var(--primary); font-weight:900;">1. ĐỌC HIỂU</div>
+              <p style="font-size:0.85rem; color:var(--text-muted); margin-top:0.25rem;">Hiểu rõ câu trả lời và bóc tách chính xác những điều AI đang khẳng định.</p>
+            </div>
+            <div style="font-size:1.5rem; color:var(--text-subtle); align-self:center;">➔</div>
+            <div style="flex:1; min-width:200px;">
+              <div style="font-size:1.75rem; color:var(--secondary); font-weight:900;">2. KIỂM CHỨNG</div>
+              <p style="font-size:0.85rem; color:var(--text-muted); margin-top:0.25rem;">Sử dụng bộ công cụ AAOCC. Đối chiếu sự thật AI nêu ra với nguồn uy tín.</p>
+            </div>
+            <div style="font-size:1.5rem; color:var(--text-subtle); align-self:center;">➔</div>
+            <div style="flex:1; min-width:200px;">
+              <div style="font-size:1.75rem; color:var(--success); font-weight:900;">3. QUYẾT ĐỊNH</div>
+              <p style="font-size:0.85rem; color:var(--text-muted); margin-top:0.25rem;">Chỉ sử dụng thông tin khi ĐÃ tự tay kiểm tra và thấy hoàn toàn phù hợp.</p>
+            </div>
+          </div>
+        </div>
+
+        <div style="text-align:center; margin-top:2.5rem;">
+          <button type="button" class="btn btn-primary" data-switch-tab="tab-cases">
+            Đi Đến Hiện Trường: Thực Hành Khám Nghiệm Án Lệ ➔
+          </button>
+        </div>
+
+      </div>
+
+      <!-- TAB PANEL 4: THỰC HÀNH ÁN LỆ (CASE STUDIES) -->
+      <div id="panel-cases" class="tab-panel-wrapper" role="tabpanel" aria-labelledby="tab-cases" hidden tabindex="-1">
+        
+        <div class="section-head">
+          <span class="section-subtitle">Phòng Thí Nghiệm Thám Tử</span>
+          <h3 class="section-title">Hồ Sơ Vụ Án: Vạch Trần Tin Giả & AI Bịa Đặt</h3>
+          <p class="section-desc">Hãy vào vai Thám tử Kỹ thuật số, đọc kỹ lời khai và bằng chứng của từng vụ án, sau đó mở báo cáo khám nghiệm AAOCC để kết luận!</p>
+        </div>
+
+        <div class="cases-grid" id="cases-container">
+          <!-- Cases rendered dynamically by JavaScript -->
+        </div>
+
+        <div style="text-align:center; margin-top:2.5rem;">
+          <button type="button" class="btn btn-accent" data-switch-tab="tab-quiz">
+            🎯 Đã Sẵn Sàng? Chinh Phục Đấu Trường Luyện Thi (15 Câu) ➔
+          </button>
+        </div>
+
+      </div>
+
+      <!-- TAB PANEL 5: ĐẤU TRƯỜNG ÔN TẬP TRẮC NGHIỆM IC3 -->
+      <div id="panel-quiz" class="tab-panel-wrapper" role="tabpanel" aria-labelledby="tab-quiz" hidden tabindex="-1">
+        
+        <div class="quiz-wrapper">
+          <div class="quiz-controls-bar">
+            <div>
+              <h3 style="font-size:1.35rem; font-weight:800; margin-bottom:0.25rem;">Ngân Hàng Câu Hỏi Ôn Luyện IC3 GS6</h3>
+              <p style="font-size:0.88rem; color:var(--text-muted);">Gồm 15 câu hỏi bám sát 100% nội dung Slide Bài 13, Bài 14 và đề thi quốc tế.</p>
+            </div>
+
+            <div class="quiz-filter-group">
+              <button type="button" class="filter-btn active" data-filter="all">Tất cả (15 câu)</button>
+              <button type="button" class="filter-btn" data-filter="bai13">Bài 13: Đánh giá</button>
+              <button type="button" class="filter-btn" data-filter="bai14">Bài 14: AI An toàn</button>
+            </div>
+
+            <div class="quiz-timer-score">
+              <span class="quiz-progress-text" id="quiz-answered-count">0 / 15 câu đã trả lời</span>
+            </div>
+          </div>
+
+          <!-- Dynamic Questions List -->
+          <div id="quiz-questions-list">
+            <!-- Questions rendered by app.js -->
+          </div>
+
+          <div class="quiz-bottom-actions">
+            <button type="button" class="btn btn-secondary" id="btn-reset-quiz">
+              🔄 Làm Lại Từ Đầu
+            </button>
+            <button type="button" class="btn btn-primary" id="btn-submit-quiz">
+              ✅ Nộp Bài & Xem Điểm / Nhận Chứng Chỉ
+            </button>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+  </main>
+
+  <!-- Quiz Result & Certificate Modal (HTML5 <dialog>) -->
+  <dialog id="quiz-result-dialog" class="result-dialog">
+    <div class="result-header">
+      <div class="result-icon">🎓</div>
+      <h3 style="font-size:1.5rem; font-weight:800;" id="dialog-rank-title">Kết Quả Đánh Giá Thám Tử</h3>
+      <p style="font-size:0.9rem; color:var(--text-muted);">Bạn đã hoàn thành bài thi trắc nghiệm kiến thức Tuần 11!</p>
+    </div>
+
+    <div class="result-score-circle">
+      <span class="score-big" id="dialog-score">0</span>
+      <span class="score-total">/ <span id="dialog-total">15</span> câu</span>
+    </div>
+
+    <!-- Printable Certificate Preview -->
+    <div class="certificate-preview" id="cert-box">
+      <div class="cert-title">CHỨNG CHỈ THÁM TỬ KỸ THUẬT SỐ</div>
+      <div style="font-size:0.85rem;">Chứng nhận học sinh:</div>
+      <div class="cert-name" id="cert-student-name">Học Sinh Lớp 8</div>
+      <div style="font-size:0.88rem; margin:0.5rem 0;">Đã hoàn thành xuất sắc khóa huấn luyện <strong>Đánh Giá Thông Tin & Ứng Dụng AI An Toàn</strong> theo chuẩn IC3 GS6 Level 3.</div>
+      <div style="font-size:0.78rem; color:#854d0e;" id="cert-date">Ngày cấp: 11/11/2026</div>
+    </div>
+
+    <div style="display:flex; justify-content:space-between; gap:0.75rem; flex-wrap:wrap; margin-top:1.5rem;">
+      <button type="button" class="btn btn-secondary" id="btn-edit-name">
+        ✏️ Đổi Tên Học Sinh
+      </button>
+      <button type="button" class="btn btn-accent" id="btn-print-cert">
+        🖨️ In Chứng Chỉ
+      </button>
+      <button type="button" class="btn btn-primary" id="btn-close-dialog">
+        Đóng Cửa Sổ
+      </button>
+    </div>
+  </dialog>
+
+  <!-- Site Footer -->
+  <footer class="site-footer">
+    <div class="container">
+      <div class="footer-grid">
+        <div class="footer-brand">
+          <h4>🕵️‍♂️ IC3 GS6 Level 3 - Sổ Tay Thám Tử Kỹ Thuật Số</h4>
+          <p>Website hỗ trợ học tập và ôn thi chứng chỉ Tin học quốc tế IC3 Digital Literacy Master Level 3. Biên soạn dựa trên bộ bài giảng Tuần 11: Bài 13 và Bài 14.</p>
+        </div>
+        <div class="footer-col">
+          <h5>Nội Dung Học Tập</h5>
+          <ul class="footer-links">
+            <li><a href="#hero" data-switch-tab="tab-bai13">5 Nguyên Tắc Cốt Lõi</a></li>
+            <li><a href="#hero" data-switch-tab="tab-bai13">Checklist Fast-Check 30s</a></li>
+            <li><a href="#hero" data-switch-tab="tab-bai14">Công Thức Prompt 4W</a></li>
+            <li><a href="#hero" data-switch-tab="tab-bai14">5 Trạm Kiểm Định AAOCC</a></li>
+          </ul>
+        </div>
+        <div class="footer-col">
+          <h5>Luyện Tập & Công Cụ</h5>
+          <ul class="footer-links">
+            <li><a href="#hero" data-switch-tab="tab-cases">Hồ Sơ Án Lệ Thám Tử</a></li>
+            <li><a href="#hero" data-switch-tab="tab-quiz">Ngân Hàng 15 Câu Hỏi</a></li>
+            <li><a href="#" data-action="print-worksheet">In Phiếu Tóm Tắt A4</a></li>
+          </ul>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>© 2026 Kế Hoạch Bài Dạy Tin Học 8 & IC3 GS6 Level 3. Thiết kế tối ưu cho học sinh và giáo viên.</p>
+      </div>
+    </div>
+  </footer>
+
+  <script src="quiz-data.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
+
