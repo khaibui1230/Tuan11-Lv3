@@ -21,7 +21,7 @@ document.addEventListener('DOMContentLoaded', () => {
 function initTheme() {
   const themeToggle = document.getElementById('theme-toggle');
   const savedTheme = localStorage.getItem('theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
-  
+
   document.documentElement.setAttribute('data-theme', savedTheme);
   updateThemeIcon(savedTheme);
 
@@ -203,7 +203,7 @@ function updateReadingProgress() {
   if (!progressBar) return;
   const activeTab = document.querySelector('[role="tab"][aria-selected="true"]');
   if (!activeTab) return;
-  
+
   const tabs = Array.from(document.querySelectorAll('[role="tab"]'));
   const idx = tabs.indexOf(activeTab);
   const percent = Math.round(((idx + 1) / tabs.length) * 100);
@@ -397,122 +397,501 @@ function initCaseLab() {
 
 /* ==========================================================================
    QUIZ ENGINE (COMPREHENSIVE IC3 GS6 LEVEL 3)
+   Hỗ trợ 2 Chế độ: Trình Chiếu Giảng Dạy (Từng Câu) & Danh Sách Học Sinh
    ========================================================================== */
 let activeFilter = 'all';
+let quizViewMode = 'presentation'; // 'presentation' | 'list'
+let currentSlideIndex = 0;
 let userAnswers = {}; // { questionId: answer }
+let revealedQuestions = {}; // { questionId: boolean }
 let isSubmitted = false;
 
 function initQuiz() {
-  const quizList = document.getElementById('quiz-questions-list');
   const filterBtns = document.querySelectorAll('.filter-btn');
+  const modePresBtn = document.getElementById('btn-mode-presentation');
+  const modeListBtn = document.getElementById('btn-mode-list');
+  const instantToggle = document.getElementById('toggle-instant-feedback');
+  const fullscreenBtn = document.getElementById('btn-toggle-fullscreen');
   const submitBtn = document.getElementById('btn-submit-quiz');
   const resetBtn = document.getElementById('btn-reset-quiz');
 
-  if (!quizList || typeof QUIZ_QUESTIONS === 'undefined') return;
+  // Presentation Navigation Buttons
+  const presPrevBtn = document.getElementById('btn-pres-prev');
+  const presNextBtn = document.getElementById('btn-pres-next');
+  const presRevealBtn = document.getElementById('btn-pres-reveal');
+  const presRetryBtn = document.getElementById('btn-pres-retry');
 
+  if (typeof QUIZ_QUESTIONS === 'undefined') return;
+
+  // Filter Categories
   filterBtns.forEach(btn => {
     btn.addEventListener('click', () => {
       filterBtns.forEach(b => b.classList.remove('active'));
       btn.classList.add('active');
       activeFilter = btn.getAttribute('data-filter');
+      currentSlideIndex = 0;
       playAudioCue('click');
-      renderQuestions();
+      refreshQuizView();
     });
   });
 
-  if (submitBtn) {
-    submitBtn.addEventListener('click', evaluateQuiz);
-  }
+    // Mode Switcher: Presentation vs List
+    if (modePresBtn && modeListBtn) {
+      modePresBtn.addEventListener('click', () => {
+        switchQuizMode('presentation');
+        playAudioCue('click');
+      });
+      modeListBtn.addEventListener('click', () => {
+        switchQuizMode('list');
+        playAudioCue('click');
+      });
+    }
 
-  if (resetBtn) {
-    resetBtn.addEventListener('click', resetQuiz);
-  }
+      // Presentation Controls
+      if (presPrevBtn) presPrevBtn.addEventListener('click', () => prevQuestion());
+      if (presNextBtn) presNextBtn.addEventListener('click', () => nextQuestion());
+      if (presRevealBtn) presRevealBtn.addEventListener('click', () => toggleRevealCurrent());
+      if (presRetryBtn) presRetryBtn.addEventListener('click', () => resetCurrentQuestion());
 
-  renderQuestions();
-}
+      // Fullscreen Button
+      if (fullscreenBtn) {
+        fullscreenBtn.addEventListener('click', () => toggleFullscreen());
+      }
 
-function getFilteredQuestions() {
-  if (activeFilter === 'all') return QUIZ_QUESTIONS;
-  return QUIZ_QUESTIONS.filter(q => q.lesson === activeFilter);
-}
+      // Keyboard Shortcuts for Teacher Slideshow
+      document.addEventListener('keydown', handleQuizKeydown);
 
-function renderQuestions() {
-  const container = document.getElementById('quiz-questions-list');
-  const questions = getFilteredQuestions();
-  if (!container) return;
+      // Submit & Reset for List Mode
+      if (submitBtn) submitBtn.addEventListener('click', evaluateQuiz);
+      if (resetBtn) resetBtn.addEventListener('click', resetQuiz);
 
-  container.innerHTML = questions.map((q, qIndex) => {
-    const isAnswered = userAnswers[q.id] !== undefined;
+      // Initial render
+      refreshQuizView();
+    }
 
-    let badgeText = q.type === 'multiple' ? `Chọn ${q.requiredCount || 2} đáp án` : (q.type === 'matching' ? 'Kéo ghép nối' : 'Chọn 1 đáp án');
-    let badgeClass = q.type === 'multiple' ? 'multi' : (q.type === 'matching' ? 'matching' : '');
+    function switchQuizMode(mode) {
+      quizViewMode = mode;
+      const presBtn = document.getElementById('btn-mode-presentation');
+      const listBtn = document.getElementById('btn-mode-list');
+      const presStage = document.getElementById('presentation-stage');
+      const listStage = document.getElementById('list-mode-container');
 
-    let optionsHtml = '';
+      if (mode === 'presentation') {
+        if (presBtn) presBtn.classList.add('active');
+        if (listBtn) listBtn.classList.remove('active');
+        if (presStage) presStage.style.display = 'block';
+        if (listStage) listStage.style.display = 'none';
+      } else {
+        if (presBtn) presBtn.classList.remove('active');
+        if (listBtn) listBtn.classList.add('active');
+        if (presStage) presStage.style.display = 'none';
+        if (listStage) listStage.style.display = 'block';
+      }
 
-    if (q.type === 'single') {
-      optionsHtml = `
+      refreshQuizView();
+    }
+
+    function refreshQuizView() {
+      if (quizViewMode === 'presentation') {
+        renderPresentationMode();
+      } else {
+        renderQuestions();
+      }
+      updateLiveScore();
+    }
+
+    function getFilteredQuestions() {
+      if (activeFilter === 'all') return QUIZ_QUESTIONS;
+      return QUIZ_QUESTIONS.filter(q => q.lesson === activeFilter);
+    }
+
+    function isAutoRevealEnabled() {
+      const toggle = document.getElementById('toggle-instant-feedback');
+      return toggle ? toggle.checked : true;
+    }
+
+    /* ==========================================================================
+       PRESENTATION MODE (TRÌNH CHIẾU TỪNG CÂU CHO GIÁO VIÊN)
+       ========================================================================== */
+    function renderPresentationMode() {
+      const questions = getFilteredQuestions();
+      if (!questions.length) return;
+
+      if (currentSlideIndex >= questions.length) currentSlideIndex = 0;
+      if (currentSlideIndex < 0) currentSlideIndex = questions.length - 1;
+
+      const q = questions[currentSlideIndex];
+      const isRevealed = !!revealedQuestions[q.id];
+      const userAns = userAnswers[q.id];
+
+      // Update Header Badges
+      const badgeEl = document.getElementById('pres-q-badge');
+      const lessonTagEl = document.getElementById('pres-lesson-tag');
+      const typeBadgeEl = document.getElementById('pres-type-badge');
+
+      if (badgeEl) badgeEl.textContent = `Câu ${currentSlideIndex + 1} / ${questions.length}`;
+      if (lessonTagEl) lessonTagEl.textContent = q.lessonTitle;
+      if (typeBadgeEl) {
+        if (q.type === 'single') typeBadgeEl.textContent = 'Chọn 1 đáp án đúng';
+        else if (q.type === 'multiple') typeBadgeEl.textContent = `Chọn ${q.requiredCount || 2} đáp án`;
+        else if (q.type === 'matching') typeBadgeEl.textContent = 'Ghép nối thuật ngữ';
+      }
+
+      // Render Jump Bar (1..N)
+      renderJumpBar(questions);
+
+      // Render Body
+      const bodyEl = document.getElementById('pres-body');
+      if (!bodyEl) return;
+
+      let optionsHtml = '';
+
+      if (q.type === 'single' || q.type === 'multiple') {
+        const isMulti = q.type === 'multiple';
+        optionsHtml = `
+      <div class="pres-options-grid" role="${isMulti ? 'group' : 'radiogroup'}">
+        ${q.options.map(opt => {
+          let isSelected = false;
+          if (isMulti) {
+            isSelected = Array.isArray(userAns) && userAns.includes(opt.id);
+          } else {
+            isSelected = userAns === opt.id;
+          }
+
+          let cardClass = '';
+          let statusBadge = '';
+
+          if (isRevealed) {
+            const isCorrectOption = isMulti ? q.correct.includes(opt.id) : q.correct === opt.id;
+            if (isCorrectOption) {
+              cardClass = 'correct';
+              statusBadge = '<span class="pres-opt-status-tag correct">✓ ĐÁP ÁN ĐÚNG</span>';
+            } else if (isSelected) {
+              cardClass = 'wrong';
+              statusBadge = '<span class="pres-opt-status-tag wrong">✗ LỰA CHỌN NÀY SAI</span>';
+            }
+          } else if (isSelected) {
+            cardClass = 'selected';
+          }
+
+          return `
+            <div class="pres-option-card ${cardClass}" data-pres-qid="${q.id}" data-pres-optid="${opt.id}" role="${isMulti ? 'checkbox' : 'radio'}" aria-checked="${isSelected}" tabindex="0">
+              <span class="pres-opt-badge">${isSelected ? '✓' : opt.id}</span>
+              <span class="pres-opt-text">${opt.text}</span>
+              ${statusBadge}
+            </div>
+          `;
+        }).join('')}
+      </div>
+    `;
+      } else if (q.type === 'matching') {
+        optionsHtml = renderMatchingUI(q, userAns || {});
+      }
+
+      // Explanation Box
+      let explanationHtml = '';
+      if (isRevealed) {
+        let correctLabel = '';
+        if (q.type === 'single') {
+          const correctOpt = q.options.find(o => o.id === q.correct);
+          correctLabel = `<strong>${q.correct}</strong>: ${correctOpt ? correctOpt.text : ''}`;
+        } else if (q.type === 'multiple') {
+          correctLabel = q.correct.join(', ');
+        } else {
+          correctLabel = 'Đã ghép nối chuẩn xác các cặp định nghĩa';
+        }
+
+        explanationHtml = `
+      <div class="pres-explanation-box">
+        <div class="pres-exp-header">
+          <span class="pres-exp-tag">💡 ĐÁP ÁN CHÍNH XÁC: ${correctLabel}</span>
+          <span style="font-size:0.85rem; color:var(--text-muted); font-weight:700;">Giải thích chi tiết cho bài giảng</span>
+        </div>
+        <div class="pres-exp-content">${q.explanation}</div>
+      </div>
+    `;
+      }
+
+      bodyEl.innerHTML = `
+    <div class="pres-question-title">
+      <strong>Câu ${currentSlideIndex + 1}:</strong> ${q.question}
+    </div>
+    ${optionsHtml}
+    ${explanationHtml}
+  `;
+
+      // Attach Options Listeners
+      attachPresOptionListeners(q);
+
+      // Update Reveal Button State
+      const revealBtn = document.getElementById('btn-pres-reveal');
+      if (revealBtn) {
+        if (isRevealed) {
+          revealBtn.innerHTML = '🙈 Ẩn Đáp Án & Thử Lại';
+          revealBtn.className = 'btn btn-pres btn-pres-hide';
+        } else {
+          revealBtn.innerHTML = '👁️ Hiện Đáp Án & Giải Thích';
+          revealBtn.className = 'btn btn-pres btn-pres-reveal';
+        }
+      }
+
+      // Update Prev / Next Button disabled states
+      const prevBtn = document.getElementById('btn-pres-prev');
+      const nextBtn = document.getElementById('btn-pres-next');
+      if (prevBtn) prevBtn.disabled = currentSlideIndex === 0;
+      if (nextBtn) nextBtn.disabled = currentSlideIndex === questions.length - 1;
+    }
+
+    function renderJumpBar(questions) {
+      const jumpBar = document.getElementById('pres-jump-bar');
+      if (!jumpBar) return;
+
+      jumpBar.innerHTML = questions.map((q, idx) => {
+        const isActive = idx === currentSlideIndex;
+        const isAnswered = userAnswers[q.id] !== undefined;
+        const isRevealed = !!revealedQuestions[q.id];
+
+        let cls = 'jump-btn';
+        if (isActive) cls += ' active';
+        if (isRevealed) cls += ' revealed';
+        else if (isAnswered) cls += ' answered';
+
+        return `
+      <button type="button" class="${cls}" data-jump-to="${idx}" title="Câu ${idx + 1} (${q.lessonTitle})" aria-label="Đến câu ${idx + 1}">
+        ${idx + 1}
+      </button>
+    `;
+      }).join('');
+
+      jumpBar.querySelectorAll('[data-jump-to]').forEach(btn => {
+        btn.addEventListener('click', () => {
+          currentSlideIndex = parseInt(btn.getAttribute('data-jump-to'));
+          playAudioCue('click');
+          renderPresentationMode();
+        });
+      });
+    }
+
+    function attachPresOptionListeners(q) {
+      document.querySelectorAll('[data-pres-qid]').forEach(card => {
+        card.addEventListener('click', () => {
+          const qid = parseInt(card.getAttribute('data-pres-qid'));
+          const optid = card.getAttribute('data-pres-optid');
+
+          if (q.type === 'single') {
+            userAnswers[qid] = optid;
+            playAudioCue('click');
+
+            if (isAutoRevealEnabled()) {
+              revealedQuestions[qid] = true;
+              const isCorrect = optid === q.correct;
+              playAudioCue(isCorrect ? 'correct' : 'wrong');
+            }
+            renderPresentationMode();
+          } else if (q.type === 'multiple') {
+            let selected = userAnswers[qid] || [];
+            if (selected.includes(optid)) {
+              selected = selected.filter(x => x !== optid);
+            } else {
+              if (q.requiredCount && selected.length >= q.requiredCount) {
+                selected.shift();
+              }
+              selected.push(optid);
+            }
+            userAnswers[qid] = selected;
+            playAudioCue('click');
+
+            if (isAutoRevealEnabled() && q.requiredCount && selected.length === q.requiredCount) {
+              revealedQuestions[qid] = true;
+              const isCorrect = q.correct.every(c => selected.includes(c));
+              playAudioCue(isCorrect ? 'correct' : 'wrong');
+            }
+            renderPresentationMode();
+          }
+        });
+      });
+
+      // Attach matching logic in presentation mode
+      attachMatchingListeners();
+    }
+
+    function prevQuestion() {
+      const questions = getFilteredQuestions();
+      if (currentSlideIndex > 0) {
+        currentSlideIndex--;
+        playAudioCue('click');
+        renderPresentationMode();
+      }
+    }
+
+    function nextQuestion() {
+      const questions = getFilteredQuestions();
+      if (currentSlideIndex < questions.length - 1) {
+        currentSlideIndex++;
+        playAudioCue('click');
+        renderPresentationMode();
+      }
+    }
+
+    function toggleRevealCurrent() {
+      const questions = getFilteredQuestions();
+      const q = questions[currentSlideIndex];
+      if (!q) return;
+
+      revealedQuestions[q.id] = !revealedQuestions[q.id];
+      if (revealedQuestions[q.id]) {
+        playAudioCue('correct');
+      } else {
+        playAudioCue('click');
+      }
+      renderPresentationMode();
+    }
+
+    function resetCurrentQuestion() {
+      const questions = getFilteredQuestions();
+      const q = questions[currentSlideIndex];
+      if (!q) return;
+
+      delete userAnswers[q.id];
+      delete revealedQuestions[q.id];
+      playAudioCue('click');
+      renderPresentationMode();
+    }
+
+    function toggleFullscreen() {
+      const stage = document.getElementById('presentation-stage');
+      if (!stage) return;
+
+      if (!document.fullscreenElement) {
+        if (stage.requestFullscreen) {
+          stage.requestFullscreen();
+        } else if (stage.webkitRequestFullscreen) {
+          stage.webkitRequestFullscreen();
+        }
+        stage.classList.add('is-fullscreen');
+      } else {
+        if (document.exitFullscreen) {
+          document.exitFullscreen();
+        }
+        stage.classList.remove('is-fullscreen');
+      }
+    }
+
+    function handleQuizKeydown(e) {
+      // Only handle shortcuts when on the quiz tab and not typing in an input
+      const quizTab = document.getElementById('tab-quiz');
+      if (!quizTab || quizTab.getAttribute('aria-selected') !== 'true') return;
+      if (['INPUT', 'TEXTAREA', 'SELECT'].includes(e.target.tagName)) return;
+
+      if (quizViewMode === 'presentation') {
+        if (e.key === 'ArrowRight' || e.key === 'PageDown') {
+          e.preventDefault();
+          nextQuestion();
+        } else if (e.key === 'ArrowLeft' || e.key === 'PageUp') {
+          e.preventDefault();
+          prevQuestion();
+        } else if (e.key === ' ' || e.key === 'Enter') {
+          e.preventDefault();
+          toggleRevealCurrent();
+        } else if (e.key === 'f' || e.key === 'F') {
+          e.preventDefault();
+          toggleFullscreen();
+        }
+      }
+    }
+
+    /* ==========================================================================
+       LIST MODE (HỌC SINH TỰ LUYỆN TẬP TẤT CẢ)
+       ========================================================================== */
+    function renderQuestions() {
+      const container = document.getElementById('quiz-questions-list');
+      const questions = getFilteredQuestions();
+      if (!container) return;
+
+      container.innerHTML = questions.map((q, qIndex) => {
+        const isAnswered = userAnswers[q.id] !== undefined;
+        const isRevealed = isSubmitted || !!revealedQuestions[q.id];
+
+        let badgeText = q.type === 'multiple' ? `Chọn ${q.requiredCount || 2} đáp án` : (q.type === 'matching' ? 'Kéo ghép nối' : 'Chọn 1 đáp án');
+        let badgeClass = q.type === 'multiple' ? 'multi' : (q.type === 'matching' ? 'matching' : '');
+
+        let optionsHtml = '';
+
+        if (q.type === 'single') {
+          optionsHtml = `
         <div class="options-list" role="radiogroup" aria-labelledby="q-title-${q.id}">
           ${q.options.map(opt => {
             const isSelected = userAnswers[q.id] === opt.id;
             let statusClass = '';
-            if (isSubmitted) {
-              if (opt.id === q.correct) statusClass = 'correct';
-              else if (isSelected && opt.id !== q.correct) statusClass = 'wrong';
-            } else if (isSelected) {
-              statusClass = 'selected';
-            }
+              if (isRevealed) {
+                if (opt.id === q.correct) statusClass = 'correct';
+                else if (isSelected && opt.id !== q.correct) statusClass = 'wrong';
+              } else if (isSelected) {
+                statusClass = 'selected';
+              }
 
-            return `
+              return `
               <div class="option-item ${statusClass}" data-qid="${q.id}" data-optid="${opt.id}" role="radio" aria-checked="${isSelected}" tabindex="0">
                 <span class="opt-prefix">${opt.id}</span>
                 <span class="opt-text">${opt.text}</span>
               </div>
             `;
-          }).join('')}
+            }).join('')}
         </div>
       `;
-    } else if (q.type === 'multiple') {
-      const currentSelected = userAnswers[q.id] || [];
-      optionsHtml = `
+        } else if (q.type === 'multiple') {
+          const currentSelected = userAnswers[q.id] || [];
+          optionsHtml = `
         <div class="options-list" role="group" aria-labelledby="q-title-${q.id}">
           ${q.options.map(opt => {
             const isSelected = currentSelected.includes(opt.id);
             let statusClass = '';
-            if (isSubmitted) {
-              if (q.correct.includes(opt.id)) statusClass = 'correct';
-              else if (isSelected && !q.correct.includes(opt.id)) statusClass = 'wrong';
-            } else if (isSelected) {
-              statusClass = 'selected';
-            }
+              if (isRevealed) {
+                if (q.correct.includes(opt.id)) statusClass = 'correct';
+                else if (isSelected && !q.correct.includes(opt.id)) statusClass = 'wrong';
+              } else if (isSelected) {
+                statusClass = 'selected';
+              }
 
-            return `
+              return `
               <div class="option-item ${statusClass}" data-qid="${q.id}" data-optid="${opt.id}" data-multi="true" role="checkbox" aria-checked="${isSelected}" tabindex="0">
                 <span class="opt-prefix">${isSelected ? '✓' : opt.id}</span>
                 <span class="opt-text">${opt.text}</span>
               </div>
             `;
-          }).join('')}
+            }).join('')}
         </div>
       `;
-    } else if (q.type === 'matching') {
-      // Matching question
-      const currentMatches = userAnswers[q.id] || {};
-      optionsHtml = renderMatchingUI(q, currentMatches);
-    }
+        } else if (q.type === 'matching') {
+          const currentMatches = userAnswers[q.id] || {};
+          optionsHtml = renderMatchingUI(q, currentMatches);
+        }
 
-    // Feedback box if submitted
-    let feedbackHtml = '';
-    if (isSubmitted) {
-      const isCorrect = checkQuestionCorrect(q);
-      feedbackHtml = `
+        // Individual Action Bar for Teachers / Students
+        const cardActionsHtml = `
+      <div class="card-action-bar">
+        <button type="button" class="btn-card-reveal ${isRevealed ? 'active' : ''}" data-card-reveal="${q.id}">
+          ${isRevealed ? '🙈 Ẩn Đáp Án & Giải Thích' : '👁️ Hiện Đáp Án & Giải Thích Ngay'}
+        </button>
+        <button type="button" class="btn-card-retry" data-card-retry="${q.id}">
+          🔄 Thử lại câu này
+        </button>
+      </div>
+    `;
+
+        // Feedback box if revealed
+        let feedbackHtml = '';
+          if (isRevealed) {
+            const isCorrect = checkQuestionCorrect(q);
+            feedbackHtml = `
         <div class="q-feedback open ${isCorrect ? 'correct' : 'wrong'}">
-          <strong>${isCorrect ? '✅ Chính xác!' : '❌ Chưa chính xác!'}</strong>
+          <strong>${isCorrect ? '✅ Chính xác!' : '💡 Đáp án & Hướng dẫn giải thích:'}</strong>
           <p style="margin-top:0.25rem;">${q.explanation}</p>
         </div>
       `;
-    }
+          }
 
-    return `
+          return `
       <div class="question-card" id="q-card-${q.id}">
         <div class="q-top-row">
           <span class="q-badge ${badgeClass}">${badgeText}</span>
@@ -520,243 +899,286 @@ function renderQuestions() {
         </div>
         <div class="q-text" id="q-title-${q.id}"><strong>Câu ${qIndex + 1}:</strong> ${q.question}</div>
         ${optionsHtml}
+        ${cardActionsHtml}
         ${feedbackHtml}
       </div>
     `;
-  }).join('');
+        }).join('');
 
-  attachOptionListeners();
-  updateLiveScore();
-}
+      attachListOptionListeners();
+      attachCardActionListeners();
+      updateLiveScore();
+    }
 
-/* Matching UI Renderer & Click-to-connect handler */
-let activeMatchingTerm = null;
+    /* Matching UI Renderer & Click-to-connect handler */
+    let activeMatchingTerm = null;
 
-function renderMatchingUI(q, currentMatches) {
-  return `
+    function renderMatchingUI(q, currentMatches) {
+      const isRevealed = !!revealedQuestions[q.id] || isSubmitted;
+
+      return `
     <div class="matching-container" id="matching-${q.id}">
       <div class="matching-col">
         <h5>Thuật ngữ Sở hữu trí tuệ:</h5>
         ${q.pairs.map(p => {
-          const isMatched = !!currentMatches[p.id];
-          return `
+        const isMatched = isRevealed || !!currentMatches[p.id];
+        return `
             <div class="matching-item ${isMatched ? 'matched' : ''}" data-qid="${q.id}" data-term-id="${p.id}" tabindex="0">
               <strong>${p.term}</strong>
-              ${isMatched ? ` ➔ <em>Đã ghép</em>` : ''}
+              ${isMatched ? ` ➔ <em>Đã ghép đôi</em>` : ''}
             </div>
           `;
-        }).join('')}
+      }).join('')}
       </div>
       <div class="matching-col">
         <h5>Mô tả hành vi vi phạm:</h5>
         ${q.pairs.map(p => {
-          // Check if this description is matched to any term
-          const matchedTermId = Object.keys(currentMatches).find(k => currentMatches[k] === p.id);
-          return `
-            <div class="matching-item ${matchedTermId ? 'matched' : ''}" data-qid="${q.id}" data-desc-id="${p.id}" tabindex="0">
+        const isMatched = isRevealed || Object.keys(currentMatches).some(k => currentMatches[k] === p.id);
+        return `
+            <div class="matching-item ${isMatched ? 'matched' : ''}" data-qid="${q.id}" data-desc-id="${p.id}" tabindex="0">
               ${p.match}
             </div>
           `;
-        }).join('')}
+      }).join('')}
       </div>
     </div>
     <div style="font-size:0.8rem; color:var(--text-subtle); margin-top:0.5rem;">
       💡 <em>Hướng dẫn:</em> Bấm chọn một thuật ngữ bên trái, sau đó bấm vào mô tả tương ứng bên phải để ghép đôi.
     </div>
   `;
-}
+    }
 
-function attachOptionListeners() {
-  if (isSubmitted) return; // Locked when submitted
+      function attachListOptionListeners() {
+        // Single choice
+        document.querySelectorAll('.option-item:not([data-multi])').forEach(item => {
+          item.addEventListener('click', () => {
+            const qid = parseInt(item.getAttribute('data-qid'));
+            const optid = item.getAttribute('data-optid');
+            userAnswers[qid] = optid;
+            playAudioCue('click');
 
-  // Single choice
-  document.querySelectorAll('.option-item:not([data-multi])').forEach(item => {
-    item.addEventListener('click', () => {
-      const qid = parseInt(item.getAttribute('data-qid'));
-      const optid = item.getAttribute('data-optid');
-      userAnswers[qid] = optid;
-      playAudioCue('click');
-      renderQuestions();
-    });
-  });
+            if (isAutoRevealEnabled()) {
+              revealedQuestions[qid] = true;
+            }
+            renderQuestions();
+          });
+        });
 
-  // Multiple choice
-  document.querySelectorAll('.option-item[data-multi="true"]').forEach(item => {
-    item.addEventListener('click', () => {
-      const qid = parseInt(item.getAttribute('data-qid'));
-      const optid = item.getAttribute('data-optid');
-      const q = QUIZ_QUESTIONS.find(x => x.id === qid);
-      let selected = userAnswers[qid] || [];
+        // Multiple choice
+        document.querySelectorAll('.option-item[data-multi="true"]').forEach(item => {
+          item.addEventListener('click', () => {
+            const qid = parseInt(item.getAttribute('data-qid'));
+            const optid = item.getAttribute('data-optid');
+            const q = QUIZ_QUESTIONS.find(x => x.id === qid);
+            let selected = userAnswers[qid] || [];
 
-      if (selected.includes(optid)) {
-        selected = selected.filter(x => x !== optid);
-      } else {
-        if (q.requiredCount && selected.length >= q.requiredCount) {
-          // Replace or notify
-          selected.shift(); // remove oldest to keep within count limit
+            if (selected.includes(optid)) {
+              selected = selected.filter(x => x !== optid);
+            } else {
+              if (q.requiredCount && selected.length >= q.requiredCount) {
+                selected.shift();
+              }
+              selected.push(optid);
+            }
+            userAnswers[qid] = selected;
+            playAudioCue('click');
+
+            if (isAutoRevealEnabled() && q.requiredCount && selected.length === q.requiredCount) {
+              revealedQuestions[qid] = true;
+            }
+            renderQuestions();
+          });
+        });
+
+        attachMatchingListeners();
+      }
+
+      function attachMatchingListeners() {
+        // Matching click logic for both presentation and list modes
+        document.querySelectorAll('.matching-item[data-term-id]').forEach(termItem => {
+          termItem.addEventListener('click', () => {
+            const qid = parseInt(termItem.getAttribute('data-qid'));
+            const termId = termItem.getAttribute('data-term-id');
+
+
+            document.querySelectorAll('.matching-item[data-term-id]').forEach(el => el.classList.remove('active'));
+            termItem.classList.add('active');
+            activeMatchingTerm = { qid, termId };
+            playAudioCue('click');
+          });
+        });
+
+        document.querySelectorAll('.matching-item[data-desc-id]').forEach(descItem => {
+          descItem.addEventListener('click', () => {
+            if (!activeMatchingTerm) return;
+            const qid = parseInt(descItem.getAttribute('data-qid'));
+            const descId = descItem.getAttribute('data-desc-id');
+
+            if (activeMatchingTerm.qid === qid) {
+              if (!userAnswers[qid]) userAnswers[qid] = {};
+              userAnswers[qid][activeMatchingTerm.termId] = descId;
+              playAudioCue('correct');
+              activeMatchingTerm = null;
+
+              const q = QUIZ_QUESTIONS.find(x => x.id === qid);
+              if (q && Object.keys(userAnswers[qid]).length === q.pairs.length && isAutoRevealEnabled()) {
+                revealedQuestions[qid] = true;
+              }
+
+              refreshQuizView();
+            }
+          });
+        });
+      }
+
+      function attachCardActionListeners() {
+        document.querySelectorAll('[data-card-reveal]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const qid = parseInt(btn.getAttribute('data-card-reveal'));
+            revealedQuestions[qid] = !revealedQuestions[qid];
+            playAudioCue('click');
+            renderQuestions();
+          });
+        });
+
+        document.querySelectorAll('[data-card-retry]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            const qid = parseInt(btn.getAttribute('data-card-retry'));
+            delete userAnswers[qid];
+            delete revealedQuestions[qid];
+            playAudioCue('click');
+            renderQuestions();
+          });
+        });
+      }
+
+      function checkQuestionCorrect(q) {
+        const ans = userAnswers[q.id];
+        if (ans === undefined) return false;
+
+        if (q.type === 'single') {
+          return ans === q.correct;
+        } else if (q.type === 'multiple') {
+          if (!Array.isArray(ans) || ans.length !== q.correct.length) return false;
+          return q.correct.every(c => ans.includes(c));
+        } else if (q.type === 'matching') {
+          if (!ans || typeof ans !== 'object') return false;
+          return q.pairs.every(p => ans[p.id] === p.id);
         }
-        selected.push(optid);
+        return false;
       }
-      userAnswers[qid] = selected;
-      playAudioCue('click');
-      renderQuestions();
-    });
-  });
 
-  // Matching click logic
-  document.querySelectorAll('.matching-item[data-term-id]').forEach(termItem => {
-    termItem.addEventListener('click', () => {
-      const qid = parseInt(termItem.getAttribute('data-qid'));
-      const termId = termItem.getAttribute('data-term-id');
-      
-      document.querySelectorAll('.matching-item[data-term-id]').forEach(el => el.classList.remove('active'));
-      termItem.classList.add('active');
-      activeMatchingTerm = { qid, termId };
-      playAudioCue('click');
-    });
-  });
+      function updateLiveScore() {
+        const questions = getFilteredQuestions();
+        const total = questions.length;
+        const answeredCount = questions.filter(q => userAnswers[q.id] !== undefined).length;
 
-  document.querySelectorAll('.matching-item[data-desc-id]').forEach(descItem => {
-    descItem.addEventListener('click', () => {
-      if (!activeMatchingTerm) return;
-      const qid = parseInt(descItem.getAttribute('data-qid'));
-      const descId = descItem.getAttribute('data-desc-id');
+        const progressEl = document.getElementById('quiz-answered-count');
+        if (progressEl) {
+          progressEl.textContent = `${answeredCount} / ${total} câu đã trả lời`;
+        }
+      }
 
-      if (activeMatchingTerm.qid === qid) {
-        if (!userAnswers[qid]) userAnswers[qid] = {};
-        userAnswers[qid][activeMatchingTerm.termId] = descId;
-        playAudioCue('correct');
+      function evaluateQuiz() {
+        const questions = getFilteredQuestions();
+        let correctCount = 0;
+
+        questions.forEach(q => {
+          revealedQuestions[q.id] = true;
+          if (checkQuestionCorrect(q)) correctCount++;
+        });
+
+        isSubmitted = true;
+        refreshQuizView();
+
+        const percent = Math.round((correctCount / questions.length) * 100);
+
+        if (percent >= 80) {
+          playAudioCue('win');
+        } else {
+          playAudioCue('correct');
+        }
+
+        showResultDialog(correctCount, questions.length, percent);
+      }
+
+      function resetQuiz() {
+        userAnswers = {};
+        revealedQuestions = {};
+        isSubmitted = false;
         activeMatchingTerm = null;
-        renderQuestions();
+        currentSlideIndex = 0;
+        playAudioCue('click');
+        refreshQuizView();
       }
-    });
-  });
-}
 
-function checkQuestionCorrect(q) {
-  const ans = userAnswers[q.id];
-  if (ans === undefined) return false;
+      /* ==========================================================================
+         RESULT & CERTIFICATE MODAL
+         ========================================================================== */
+      function showResultDialog(correct, total, percent) {
+        const dialog = document.getElementById('quiz-result-dialog');
+        if (!dialog) return;
 
-  if (q.type === 'single') {
-    return ans === q.correct;
-  } else if (q.type === 'multiple') {
-    if (!Array.isArray(ans) || ans.length !== q.correct.length) return false;
-    return q.correct.every(c => ans.includes(c));
-  } else if (q.type === 'matching') {
-    if (!ans || typeof ans !== 'object') return false;
-    return q.pairs.every(p => ans[p.id] === p.id);
-  }
-  return false;
-}
+        const scoreEl = document.getElementById('dialog-score');
+        const totalEl = document.getElementById('dialog-total');
+        const titleEl = document.getElementById('dialog-rank-title');
+        const certNameEl = document.getElementById('cert-student-name');
+        const certDateEl = document.getElementById('cert-date');
 
-function updateLiveScore() {
-  const questions = getFilteredQuestions();
-  const total = questions.length;
-  const answeredCount = questions.filter(q => userAnswers[q.id] !== undefined).length;
+        if (scoreEl) scoreEl.textContent = correct;
+        if (totalEl) totalEl.textContent = total;
 
-  const progressEl = document.getElementById('quiz-answered-count');
-  if (progressEl) {
-    progressEl.textContent = `${answeredCount} / ${total} câu đã trả lời`;
-  }
-}
+        let rank = "Thám Tử Tập Sự";
+        if (percent >= 90) rank = "🌟 ĐẠI THÁM TỬ KỸ THUẬT SỐ XUẤT SẮC";
+        else if (percent >= 70) rank = "🔍 THÁM TỬ THÔNG TIN CẤP CAO";
+        else if (percent >= 50) rank = "🔎 THÁM TỬ THÔNG TIN";
 
-function evaluateQuiz() {
-  const questions = getFilteredQuestions();
-  let correctCount = 0;
+        if (titleEl) titleEl.textContent = rank;
 
-  questions.forEach(q => {
-    if (checkQuestionCorrect(q)) correctCount++;
-  });
+        if (certDateEl) {
+          const today = new Date();
+          certDateEl.textContent = `Ngày cấp: ${today.getDate()}/${today.getMonth() + 1}/${today.getFullYear()}`;
+        }
 
-  isSubmitted = true;
-  renderQuestions();
-
-  const percent = Math.round((correctCount / questions.length) * 100);
-
-  if (percent >= 80) {
-    playAudioCue('win');
-  } else {
-    playAudioCue('correct');
-  }
-
-  showResultDialog(correctCount, questions.length, percent);
-}
-
-function resetQuiz() {
-  userAnswers = {};
-  isSubmitted = false;
-  activeMatchingTerm = null;
-  playAudioCue('click');
-  renderQuestions();
-}
-
-/* ==========================================================================
-   RESULT & CERTIFICATE MODAL
-   ========================================================================== */
-function showResultDialog(correct, total, percent) {
-  const dialog = document.getElementById('quiz-result-dialog');
-  if (!dialog) return;
-
-  const scoreEl = document.getElementById('dialog-score');
-  const totalEl = document.getElementById('dialog-total');
-  const titleEl = document.getElementById('dialog-rank-title');
-  const certNameEl = document.getElementById('cert-student-name');
-  const certDateEl = document.getElementById('cert-date');
-
-  if (scoreEl) scoreEl.textContent = correct;
-  if (totalEl) totalEl.textContent = total;
-
-  let rank = "Thám Tử Tập Sự";
-  if (percent >= 90) rank = "🌟 ĐẠI THÁM TỬ KỸ THUẬT SỐ XUẤT SẮC";
-  else if (percent >= 70) rank = "🔍 THÁM TỬ THÔNG TIN CẤP CAO";
-  else if (percent >= 50) rank = "🔎 THÁM TỬ THÔNG TIN";
-
-  if (titleEl) titleEl.textContent = rank;
-
-  if (certDateEl) {
-    const today = new Date();
-    certDateEl.textContent = `Ngày cấp: ${today.getDate()}/${today.getMonth() + 1}/${today.getFullYear()}`;
-  }
-
-  // Ask or get student name
-  let studentName = localStorage.getItem('student_name') || 'Học Sinh Lớp 8';
-  if (certNameEl) certNameEl.textContent = studentName;
-
-  dialog.showModal();
-
-  // Close btn
-  const closeBtn = document.getElementById('btn-close-dialog');
-  if (closeBtn) {
-    closeBtn.onclick = () => dialog.close();
-  }
-
-  const printCertBtn = document.getElementById('btn-print-cert');
-  if (printCertBtn) {
-    printCertBtn.onclick = () => window.print();
-  }
-
-  const editNameBtn = document.getElementById('btn-edit-name');
-  if (editNameBtn) {
-    editNameBtn.onclick = () => {
-      const newName = prompt('Nhập họ và tên của bạn để in lên Chứng chỉ:', studentName);
-      if (newName && newName.trim()) {
-        studentName = newName.trim();
-        localStorage.setItem('student_name', studentName);
+        // Ask or get student name
+        let studentName = localStorage.getItem('student_name') || 'Học Sinh Lớp 8';
         if (certNameEl) certNameEl.textContent = studentName;
-      }
-    };
-  }
-}
 
-/* ==========================================================================
-   PRINT WORKSHEET BUTTON
-   ========================================================================== */
-function initPrintButton() {
-  document.querySelectorAll('[data-action="print-worksheet"]').forEach(btn => {
-    btn.addEventListener('click', () => {
-      playAudioCue('click');
-      window.print();
-    });
-  });
-}
+        dialog.showModal();
+
+        // Close btn
+        const closeBtn = document.getElementById('btn-close-dialog');
+        if (closeBtn) {
+          closeBtn.onclick = () => dialog.close();
+        }
+
+        const printCertBtn = document.getElementById('btn-print-cert');
+        if (printCertBtn) {
+          printCertBtn.onclick = () => window.print();
+        }
+
+        const editNameBtn = document.getElementById('btn-edit-name');
+        if (editNameBtn) {
+          editNameBtn.onclick = () => {
+            const newName = prompt('Nhập họ và tên của bạn để in lên Chứng chỉ:', studentName);
+            if (newName && newName.trim()) {
+              studentName = newName.trim();
+              localStorage.setItem('student_name', studentName);
+              if (certNameEl) certNameEl.textContent = studentName;
+            }
+          };
+        }
+      }
+
+      /* ==========================================================================
+         PRINT WORKSHEET BUTTON
+         ========================================================================== */
+      function initPrintButton() {
+        document.querySelectorAll('[data-action="print-worksheet"]').forEach(btn => {
+          btn.addEventListener('click', () => {
+            playAudioCue('click');
+            window.print();
+          });
+        });
+      }
 
